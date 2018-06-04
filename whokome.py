@@ -25,7 +25,7 @@ class Whokome():
         self.viewers = ''
         self.writing = False
         self.resized = False
-        self.backlog = deque([])
+        self.backlog = deque(['self.pad.addstr(5,0,"placeholder")'])
         self.promptInfo(args)
         self.session = requests.Session()
         self.queue = queue.Queue()
@@ -105,7 +105,6 @@ class Whokome():
                                         'self.pad.addstr(self.winy-1,0,"'+str(entry["msg"])+'")',\
                                         'self.pad.scroll(1)')
                                 exec_msg = '%s;%s;%s;%s;%s;%s;%s'%printmsg
-                                self.backlog.append(exec_msg)
                                 #check duplicate comment
                                 if exec_msg != self.backlog[-1]:
                                     exec(exec_msg)
@@ -154,7 +153,8 @@ class Whokome():
                 time.sleep(0.5)
                 try:
                     r = self.session.get(self.url+'?last_updated_at='+\
-                                         '%d'%((time.time()-0.5)*1000),timeout=1)
+                                         str(r.json()["updated_at"]),\
+                                             timeout=1)
                 except requests.exceptions.Timeout:
                     pass
         except KeyError:
