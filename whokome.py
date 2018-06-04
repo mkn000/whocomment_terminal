@@ -107,7 +107,7 @@ class Whokome():
                                 exec_msg = '%s;%s;%s;%s;%s;%s;%s'%printmsg
                                 self.backlog.append(exec_msg)
                                 #check duplicate comment
-                                if exec_msg != self.backlog[:-1]:
+                                if exec_msg != self.backlog[-1]:
                                     exec(exec_msg)
                                     self.backlog.append(exec_msg)
                                 
