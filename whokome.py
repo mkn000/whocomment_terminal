@@ -32,6 +32,9 @@ class Whokome():
         self.beginViewer()
 
     def sendComment(self):
+        """
+        Send comment
+        """
         headers = {'Host':'api.whowatch.tv',\
                    'User-Agent':('Mozilla/5.0 (Windows NT 10.0;Win64;x64) '
                                  'AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -55,6 +58,9 @@ class Whokome():
         self.komepad.clear()
         
     def drawInfo(self):
+        """
+        Paint comments and status info to terminal
+        """
         try:
             while self.status == 'PUBLISHING' or not self.queue.Empty():
                 timeinfo = '%01d:%02d / %01d:%02d'%\
@@ -62,11 +68,11 @@ class Whokome():
                             *divmod(self.time_limit,60))
                 self.pos={"title":7,"caster":13,
                           "time_val":self.scrx-len(timeinfo),
-                          "viewers_str":self.scrx-len(self.viewers)-9,
-                          "viewers_val":self.scrx-len(self.viewers)}
+                          "viewers_str":self.scrx-7,
+                          "viewers_val":self.scrx-8-len(self.viewers)}
                 self.pad.addstr(0,0,"broadcaster:")
                 self.pad.addstr(1,0,"title:")
-                self.pad.addstr(1,self.pos["viewers_str"],"viewers:")
+                self.pad.addstr(1,self.pos["viewers_str"],"viewers")
                 self.pad.addstr(1,self.pos["viewers_val"],self.viewers)
                 self.pad.addstr(0,self.pos["caster"],self.caster)
                 self.pad.addstr(1,self.pos["title"],self.title)
@@ -96,11 +102,15 @@ class Whokome():
                                         'self.pad.chgat(self.winy-1,11,-1,'\
                                         'curses.color_pair(1))',\
                                         'self.pad.scroll(1)',
-                                            'self.pad.addstr(self.winy-1,0,"'+str(entry["msg"])+'")',\
+                                        'self.pad.addstr(self.winy-1,0,"'+str(entry["msg"])+'")',\
                                         'self.pad.scroll(1)')
-                                exec('%s;%s;%s;%s;%s;%s;%s'%printmsg)
-                                self.backlog.append('%s;%s;%s;%s;%s;%s;%s'\
-                                                    %printmsg)
+                                exec_msg = '%s;%s;%s;%s;%s;%s;%s'%printmsg
+                                self.backlog.append(exec_msg)
+                                #check duplicate comment
+                                if exec_msg != self.backlog[:-1]:
+                                    exec(exec_msg)
+                                    self.backlog.append(exec_msg)
+                                
                                 if len(self.backlog) > 100:
                                     self.backlog.popleft()
                     except queue.Empty:
@@ -113,6 +123,9 @@ class Whokome():
             self.scr.refresh()
 
     def updateInfo(self):
+        """
+        Get updates of comments and other info
+        """
         r = self.session.get(self.url)
         try:
             self.status = r.json()["live"]["live_status"]
@@ -172,14 +185,17 @@ class Whokome():
                 
                 c = self.scr.get_wch(self.scry-2,0)
                 if c == curses.KEY_UP and self.curpos > 3:
+                    #scroll comment window up for past comments
                     self.curpos -= 1
                     self.pad.refresh(self.curpos,0,3,0,self.scry-5,self.scrx-1)
                 elif c == curses.KEY_DOWN:
+                    #scroll comment window down
                     if self.curpos < self.winy-18:
                         self.curpos += 1
                         self.pad.refresh(self.curpos,0,3,0,self.scry-5,\
                                          self.scrx-1)
                 elif c == '\n':
+                    #enter input mode & send comment
                     if self.writing == False:
                         self.writing = True
                         self.msg = ''
@@ -192,6 +208,7 @@ class Whokome():
                     self.msg = self.msg[:-1]
                     self.komepad.clear()
                 elif c == curses.KEY_RESIZE:
+                    #check terminal resize event
                     curses.update_lines_cols()
                     self.windowsInit()
                     self.resized = True
@@ -214,6 +231,9 @@ class Whokome():
         sys.exit(0)
 
     def promptInfo(self,args):
+        """
+        Ask user for url or whowatch live id
+        """
         if len(args) == 1:
             openMsg = 'Give live id/ url (quit to exit):'
             self.pad.addstr(0,0,openMsg)
@@ -245,6 +265,9 @@ class Whokome():
         self.url = '%s%s'%('https://api.whowatch.tv/lives/',liveId)
 
     def windowsInit(self):
+        """
+        Initialize windows
+        """
         self.scrx,self.scry = curses.COLS,curses.LINES
         self.winy = 4*self.scry
         self.winx = self.scrx
@@ -260,6 +283,9 @@ class Whokome():
         self.komepad.leaveok(False)
 
     def curseInit(self):
+        """
+        Initialize curses
+        """
         self.scr = curses.initscr()
         self.scr.keypad(True)
         self.scr.leaveok(False)
