@@ -68,7 +68,7 @@ class Whokome():
                             *divmod(self.time_limit,60))
                 self.pos={"title":7,"caster":13,
                           "time_val":self.scrx-len(timeinfo),
-                          "viewers_str":self.sxrx-7,
+                          "viewers_str":self.scrx-7,
                           "viewers_val":self.scrx-8-len(self.viewers)}
                 self.pad.addstr(0,0,"broadcaster:")
                 self.pad.addstr(1,0,"title:")
